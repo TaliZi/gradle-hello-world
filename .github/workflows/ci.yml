@@ -48,12 +48,10 @@ jobs:
           name: jar-file
           path: build/libs/*.jar
 
-      # install trivy 
+      # install trivy          
       - name: install trivy
-        run: |
-          sudo apt-get install wget -y
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.48.3_Linux-64bit.deb
-          sudo dpkg -i trivy_0.48.3_Linux-64bit.deb
+         run: |
+         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 
       # create SBOM 
       - name: generate SBOM
