@@ -88,7 +88,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
 
        # download and run docker image 
-       # note: docker will automatically pull the image if it does not exist locally.
+       # note: docker will automatically pull the image if it does not exist locally
       - name: run docker image
         run: |
           docker run ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
