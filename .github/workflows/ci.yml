@@ -76,19 +76,19 @@ jobs:
       - name: login dockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: build docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }} .
 
       - name: push docker image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
 
        # download and run docker image 
        # note: docker will automatically pull the image if it does not exist locally)
       - name: run docker image
         run: |
-          docker run ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
+          docker run ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
