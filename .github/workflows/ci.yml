@@ -70,7 +70,7 @@ jobs:
       - name: sign jar
         run: |
           cosign generate-key-pair
-          cosign sign-blob --key cosign.key build/libs/*.jar > signature.txt
+          cosign sign-blob --yes --key cosign.key build/libs/*.jar > signature.txt
 
       # docker build + push to dockerHub 
       - name: login dockerHub
