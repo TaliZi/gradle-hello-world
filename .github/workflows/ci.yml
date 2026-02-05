@@ -1,0 +1,97 @@
+name: CI pipeline
+
+# the event that triggers this workflow 
+on:
+  push:
+    branches: [ master ]
+    
+# the job/s running steps of workflow
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: make gradlew executable
+        run: chmod +x gradlew
+
+
+      # increase patch version 
+      - name: bump Patch Version
+        id: version
+        run: |
+          VERSION=$(grep '^version =' build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          PATCH=$((PATCH+1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" build.gradle.kts
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+         
+
+      # build 
+      - name: build project
+        run: ./gradlew build
+
+      # upload artifact 
+      - name: upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-file
+          path: build/libs/*.jar
+
+      # install trivy 
+      - name: install trivy
+        run: |
+          sudo apt-get install wget -y
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.48.3_Linux-64bit.deb
+          sudo dpkg -i trivy_0.48.3_Linux-64bit.deb
+
+      # create SBOM 
+      - name: generate SBOM
+        run: trivy fs --format cyclonedx --output sbom.json .
+
+      - name: upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+
+      # install cosign 
+      - name: install cosign
+        uses: sigstore/cosign-installer@v3
+
+      # sign artifact with cosign
+      - name: sign jar
+        run: |
+          cosign generate-key-pair
+          cosign sign-blob --key cosign.key build/libs/*.jar > signature.txt
+
+      # docker build + push to dockerHub 
+      - name: login dockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: build docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }} .
+
+      - name: push docker image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
+
+       # download and run docker image 
+       # note: docker will automatically pull the image if it does not exist locally)
+      - name: run docker image
+        run: |
+          docker run ${{ secrets.DOCKER_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
