@@ -35,6 +35,15 @@ jobs:
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" build.gradle.kts
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+       - name: commit version
+        if: github.actor != 'github-actions[bot]'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add build.gradle.kts
+          git commit -m "bump version to ${{ steps.version.outputs.version }}" || true
+          git push
          
 
       # build 
