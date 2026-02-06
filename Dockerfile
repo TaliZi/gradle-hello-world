@@ -1,9 +1,9 @@
-# stage 1 - copy the artifact.
+# stage 1 - copy the artifact
 FROM alpine AS artifact
 WORKDIR /artifacts
 COPY build/libs/*-all.jar app.jar
 
-# stage 2 - runtime.
+# stage 2 - runtime
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 RUN useradd -m appuser
