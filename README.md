@@ -21,26 +21,30 @@ The main goals of this project are:
 
 ## Project structure
 
-- `src/`  
-  contains the java source code.  
-  a minimal hello world application used as a build target.
+This repository is minimal on the application side and focuses on demonstrating a complete CI pipeline and build process rather than complex application logic.
+
+The key components of the project are:
 
 - `build.gradle.kts`  
-  gradle build configuration using kotlin dsl.  
-  defines the application version and build settings.
+  defines the gradle build configuration using kotlin dsl.  
+  this file contains the application metadata (including version), build plugins, tasks, and packaging configuration.  
+  it serves as the central definition for how the application is built and packaged, and the ci pipeline interacts with it to automatically manage versioning.
 
 - `gradlew` and `gradle/wrapper/`  
-  gradle wrapper files that allow running the build without installing gradle locally.  
-  this ensures the same gradle version is used by all developers and in the CI pipeline.
-
-- `Dockerfile`  
-  defines how the application is packaged into a docker image.  
+  gradle wrapper files that allow running the build without installing gradle manually.  
+  the wrapper automatically downloads the required gradle version for the project, ensuring consistent and reproducible builds across local development environments and the ci pipeline.
 
 - `.github/workflows/ci.yml`  
-  github actions workflow implementing the full CI pipeline.
+  the core of the project.  
+  this workflow implements the full ci pipeline, including automatic version bumping, build execution, artifact publishing, sbom generation, artifact signing, docker image build and push, runtime verification, and committing the version only after a successful pipeline run.
 
-- `LICENSE`  
-  this project is licensed under the apache license 2.0, which allows free use, modification, reproduction and distribution of the code with built-in patent protection.
+- `Dockerfile`  
+  defines how the built jar is packaged into a runtime docker image.  
+  the image is built and tagged automatically by the ci pipeline using the application version and is configured to run as a non-root user.
+
+- `src/`  
+  contains a minimal java hello world application.  
+  the simplicity of the application is intentional, as it serves as a build target to demonstrate the ci process rather than application-level complexity.
 
 ---
 
