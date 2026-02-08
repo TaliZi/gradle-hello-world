@@ -75,7 +75,7 @@ this demonstrates how build artifacts can be verified for integrity and authenti
 
 ---
 
-### 7. docker build, push and run (multi-stage)
+### 7. docker build, push and run 
 
 - logs in to docker hub using github secrets
 - builds a docker image using a multi-stage dockerfile
@@ -93,7 +93,7 @@ the second stage contains only the minimal runtime environment (java 17 jre) and
 this design provides:
 - smaller and cleaner runtime images
 - reduced attack surface by excluding build tools and temporary files
-- clear separation between build-time and runtime concerns
+- clear separation between build-time and runtime stages
 
 ---
 
