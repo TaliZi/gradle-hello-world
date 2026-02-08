@@ -19,35 +19,6 @@ The main goals of this project are:
 
 ---
 
-## Project structure
-
-This repository is minimal on the application side and focuses on demonstrating a complete CI pipeline and build process rather than complex application logic.
-
-The key components of the project are:
-
-- `build.gradle.kts`  
-  defines the gradle build configuration using kotlin dsl.  
-  this file contains the application metadata (including version), build plugins, tasks, and packaging configuration.  
-  it serves as the central definition for how the application is built and packaged, and the ci pipeline interacts with it to automatically manage versioning.
-
-- `gradlew` and `gradle/wrapper/`  
-  gradle wrapper files that allow running the build without installing gradle manually.  
-  the wrapper automatically downloads the required gradle version for the project, ensuring consistent and reproducible builds across local development environments and the ci pipeline.
-
-- `.github/workflows/ci.yml`  
-  the core of the project.  
-  this workflow implements the full ci pipeline, including automatic version bumping, build execution, artifact publishing, sbom generation, artifact signing, docker image build and push, runtime verification, and committing the version only after a successful pipeline run.
-
-- `Dockerfile`  
-  defines how the built jar is packaged into a runtime docker image.  
-  the image is built and tagged automatically by the ci pipeline using the application version and is configured to run as a non-root user.
-
-- `src/`  
-  contains a minimal java hello world application.  
-  the simplicity of the application is intentional, as it serves as a build target to demonstrate the ci process rather than application-level complexity.
-
----
-
 ## CI pipeline overview
 
 The pipeline runs automatically on every push event to the `master` branch.
@@ -104,14 +75,25 @@ this demonstrates how build artifacts can be verified for integrity and authenti
 
 ---
 
-### 7. docker build, push and run
-- logs in to docker hub using Github secrets
-- builds a docker image using the dockerfile
-- tags the image with the same version as the jar artifact
-- pushes the image to Docker hub
-- runs the container to verify successful execution
+### 7. docker build, push and run (multi-stage)
 
-docker automatically pulls the image if it does not exist locally.
+- logs in to docker hub using github secrets
+- builds a docker image using a multi-stage dockerfile
+- tags the image with the same version as the jar artifact
+- pushes the image to docker hub
+- runs the container to verify successful execution (docker automatically pulls the image if it does not exist locally).
+
+the docker image is built using a multi-stage approach.
+
+the first stage is used only to collect the built artifact (the fat jar produced by gradle).  
+this stage is not included in the final image.
+
+the second stage contains only the minimal runtime environment (java 17 jre) and the application jar, and runs the application as a non-root user.
+
+this design provides:
+- smaller and cleaner runtime images
+- reduced attack surface by excluding build tools and temporary files
+- clear separation between build-time and runtime concerns
 
 ---
 
