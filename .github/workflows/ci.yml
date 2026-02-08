@@ -5,7 +5,7 @@ on:
   push:
     branches: [ master ]
     
-# the job/s running steps of workflow
+# the job running steps of workflow
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,7 +25,7 @@ jobs:
 
 
       # increase patch version 
-      - name: bump Patch Version
+      - name: bump patch version
         id: version
         run: |
           VERSION=$(grep '^version =' build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
@@ -33,17 +33,7 @@ jobs:
           PATCH=$((PATCH+1))
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" build.gradle.kts
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
-      - name: commit version
-        if: github.actor != 'github-actions[bot]'
-        run: |
-           git config user.name github-actions[bot]
-           git config user.email github-actions[bot]@users.noreply.github.com
-           git add build.gradle.kts
-           git commit -m "bump version to ${{ steps.version.outputs.version }}" || true
-           git push
-         
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT      
 
       # build 
       - name: build project
@@ -100,3 +90,13 @@ jobs:
       - name: run docker image
         run: |
           docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/gradle-hello-world:${{ steps.version.outputs.version }}
+          
+      # the version is committed only after a successful pipeline run, to avoid pushing broken releases   
+      - name: commit version
+        if: github.actor != 'github-actions[bot]'
+        run: |
+           git config user.name github-actions[bot]
+           git config user.email github-actions[bot]@users.noreply.github.com
+           git add build.gradle.kts
+           git commit -m "bump version to ${{ steps.version.outputs.version }}" || true
+           git push
