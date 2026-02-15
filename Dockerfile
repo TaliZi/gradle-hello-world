@@ -9,5 +9,5 @@ WORKDIR /app
 RUN useradd -m appuser
 USER appuser
 COPY --from=artifact /artifacts/app.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
-CMD []
+CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar"]
